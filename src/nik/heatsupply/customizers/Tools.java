@@ -1,15 +1,23 @@
 package nik.heatsupply.customizers;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.DefaultXYItemRenderer;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -18,6 +26,33 @@ import net.sf.jasperreports.engine.JRChart;
 import net.sf.jasperreports.engine.JRFont;
 
 public class Tools {
+	public static void append2File(String text) {
+		File file = new File("d:/1.txt");
+		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
+			if (!file.exists()) file.createNewFile();
+			out.println(text);
+		}catch (IOException e) {
+		}
+	}
+	
+	public static void drawXaxis(XYPlot plot) {
+		double minX = plot.getDomainAxis().getLowerBound();
+		double maxX = plot.getDomainAxis().getUpperBound();
+		XYSeries domainAxis = new XYSeries("");
+		XYSeriesCollection dsAxis = new XYSeriesCollection(domainAxis);
+		domainAxis.add(minX, 0);
+		domainAxis.add(maxX, 0);
+
+		plot.setDataset(plot.getDatasetCount(), dsAxis);
+		DefaultXYItemRenderer rendererBorder = new DefaultXYItemRenderer();
+		rendererBorder.setBaseItemLabelsVisible(false);
+		rendererBorder.setBaseSeriesVisibleInLegend(false);
+		rendererBorder.setSeriesPaint(0, Color.BLACK);
+		rendererBorder.setSeriesShapesVisible(0, false);
+		rendererBorder.setSeriesStroke(0, new BasicStroke(1.5f));
+		plot.setRenderer(plot.getRendererCount(), rendererBorder);
+	}
+
 	public static Shape generateShapeFromText(Font font, String string, boolean isLeft, float offsetX, float offsetY) {
 		Font fontNew = new Font(font.getName(), font.getStyle(), font.getSize() - 4);
 		BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
@@ -48,6 +83,10 @@ public class Tools {
 	}
 	
 	public static void setSameBounds(XYPlot plot) {
+		setSameBounds(plot, 1.1);
+	}
+	
+	public static void setSameBounds(XYPlot plot, double upKoef) {
 		int asixCount = plot.getRangeAxisCount();
 		double maxYvalue = plot.getRangeAxis(0).getUpperBound();
 		double minYvalue = plot.getRangeAxis(0).getLowerBound();
@@ -59,7 +98,7 @@ public class Tools {
 		}
 		for(int i = 0; i < asixCount; i++) {
 			ValueAxis axis = plot.getRangeAxis(i);
-			axis.setUpperBound(maxYvalue * 1.1);
+			axis.setUpperBound(maxYvalue * upKoef);
 			axis.setLowerBound(minYvalue);
 			
 			if(i !=  0) axis.setVisible(false);

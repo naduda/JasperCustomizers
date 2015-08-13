@@ -3,7 +3,6 @@ package nik.heatsupply.customizers;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.geom.Ellipse2D;
 import java.text.FieldPosition;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
@@ -25,10 +24,11 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import net.sf.jasperreports.engine.JRChart;
 import net.sf.jasperreports.engine.JRChartCustomizer;
+import nik.heatsupply.customizers.renderers.AreaRendererFict;
 import nik.heatsupply.customizers.renderers.RendererShowArrows;
 import nik.heatsupply.customizers.renderers.RendererShowValues;
 
-public class MultiAxis implements JRChartCustomizer {
+public class Spozh1 implements JRChartCustomizer {
 	private final double BAR_OFFSET = 0.1;
 
 	@Override
@@ -92,25 +92,13 @@ public class MultiAxis implements JRChartCustomizer {
 				XYItemRenderer renderer = plot.getRenderer(i);
 				if(renderer instanceof XYAreaRenderer) {
 					Tools.createBarChart(plot, i, BAR_OFFSET);
-					renderer.setSeriesPaint(0, new Color(0,128,255));
-					renderer.setBaseItemLabelsVisible(false);
-					renderer.setBaseSeriesVisibleInLegend(false);
+					AreaRendererFict rendererMain = new AreaRendererFict(Tools.fontResize(font, -2));
+					rendererMain.setFillColor(new Color(0,128,255));
+					rendererMain.setWithValues(true);
+					rendererMain.setBorderStroke(new BasicStroke(1.5f));
+					plot.setRenderer(i, rendererMain);
 					
 					XYSeriesCollection ds = (XYSeriesCollection) plot.getDataset(i);
-					plot.setDataset(plot.getDatasetCount(), ds);
-					RendererShowValues rendererValues = new RendererShowValues(ds, font);
-					rendererValues.setOffsetX(8);
-					plot.setRenderer(plot.getRendererCount(), rendererValues);
-
-					plot.setDataset(plot.getDatasetCount(), ds);
-					DefaultXYItemRenderer rendererBorder = new DefaultXYItemRenderer();
-					rendererBorder.setSeriesPaint(0, Color.BLACK);
-					rendererBorder.setSeriesStroke(i, new BasicStroke(1.5f));
-					rendererBorder.setSeriesOutlineStroke(i, new BasicStroke(1.5f));
-					rendererBorder.setSeriesShape(0, new Ellipse2D.Double(0,0,0,0));
-					rendererBorder.setBaseItemLabelsVisible(false);
-					rendererBorder.setBaseSeriesVisibleInLegend(false);
-					plot.setRenderer(plot.getRendererCount(), rendererBorder);
 
 					plot.setDataset(plot.getDatasetCount(), ds);
 					plot.setRenderer(plot.getRendererCount(), new RendererShowArrows(ds, true));
@@ -125,13 +113,20 @@ public class MultiAxis implements JRChartCustomizer {
 						rendererValuesDiff.setColor(Color.WHITE);
 						plot.setRenderer(plot.getRendererCount(), rendererValuesDiff);
 					}
+					plot.setDataset(plot.getDatasetCount(), ds);
+					DefaultXYItemRenderer rendererBorder = new DefaultXYItemRenderer();
+					rendererBorder.setBaseItemLabelsVisible(false);
+					rendererBorder.setBaseSeriesVisibleInLegend(false);
+					rendererBorder.setSeriesPaint(0, Color.BLACK);
+					rendererBorder.setSeriesShapesVisible(0, false);
+					plot.setRenderer(plot.getRendererCount(), rendererBorder);
 					break;
 				}
 			}
 
 			for(int i = 0; i < plot.getRendererCount(); i++) {
 				XYItemRenderer renderer = plot.getRenderer(i);
-				if(renderer instanceof XYLineAndShapeRenderer) {
+				if(renderer instanceof XYLineAndShapeRenderer && !(renderer instanceof AreaRendererFict)) {
 					Tools.createStepChart(plot, i);
 					XYSeriesCollection ds = (XYSeriesCollection) plot.getDataset(i);
 
@@ -162,6 +157,7 @@ public class MultiAxis implements JRChartCustomizer {
 			}
 			
 			Tools.setSameBounds(plot);
+			Tools.drawXaxis(plot);
 		}
 	}
 	
@@ -183,7 +179,10 @@ public class MultiAxis implements JRChartCustomizer {
 
 		@Override
 		public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) {
-			return null;
+			String text = "";
+			if(labels != null && labels.get(number) != null)
+				text = labels.get(number);
+			return new StringBuffer(text);
 		}
 
 		@Override

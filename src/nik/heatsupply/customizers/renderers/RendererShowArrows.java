@@ -55,7 +55,7 @@ public class RendererShowArrows extends XYLineAndShapeRenderer {
 							}
 						} else {
 							if(item.getYValue() == itemNext.getYValue() && item.getYValue() > 0) {
-								shape = getArrow2();
+								shape = getArrow();
 							}
 						}
 					}
@@ -71,13 +71,6 @@ public class RendererShowArrows extends XYLineAndShapeRenderer {
 		return new CloseShape(new Point2D.Double(isRight ? -10 : 10, 2),
 				new Point2D.Double(isRight ? -13 : 13, 7),
 				new Point2D.Double(isRight ? -7 : 7, 7));
-	}
-	
-	private Shape getArrow2() {
-		Path2D p = new Path2D.Double();
-		p.moveTo(10, 2); p.lineTo(13, 7); p.lineTo(7, 7); p.closePath();
-		p.moveTo(9, 7); p.lineTo(9, 10); p.lineTo(11, 10); p.lineTo(11, 7); p.closePath();
-		return p;
 	}
 	
 	private class CloseShape extends Path2D.Double {
