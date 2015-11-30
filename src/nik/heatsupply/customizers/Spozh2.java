@@ -14,17 +14,26 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import net.sf.jasperreports.engine.JRAbstractChartCustomizer;
 import net.sf.jasperreports.engine.JRChart;
-import net.sf.jasperreports.engine.JRChartCustomizer;
 import nik.heatsupply.customizers.renderers.AreaRendererFict;
 
-public class Spozh2 implements JRChartCustomizer {
+public class Spozh2 extends JRAbstractChartCustomizer {
 	private final double BAR_OFFSET = 0.1;
 
 	@Override
 	public void customize(JFreeChart chart, JRChart jChart) {
 		Font font = Tools.getChartFont(jChart);
-
+		int curYear = 0;
+		if(jChart.getPropertiesMap() != null) {
+			try {
+				curYear = Integer.parseInt(jChart.getPropertiesMap().getProperty("currentYear"));
+			} catch (NumberFormatException e) {
+				System.out.println("\n\n\nProperty currentYear not exist\n\n\n");
+			}
+		}
+		chart.setTitle("");
+		
 		if(chart.getPlot().getPlotType().toLowerCase().equals("xy")) {
 			XYPlot plot = (XYPlot) chart.getPlot();
 			Tools.setFonts(plot, font);
@@ -32,7 +41,7 @@ public class Spozh2 implements JRChartCustomizer {
 			plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
 			double minX = 0;
 			double maxX = 0;
-			
+
 			for(int i = 0; i < plot.getRendererCount(); i++) {
 				XYItemRenderer renderer = plot.getRenderer(i);
 				if(renderer instanceof XYAreaRenderer) {
@@ -42,19 +51,27 @@ public class Spozh2 implements JRChartCustomizer {
 					renderer.setBaseSeriesVisibleInLegend(false);
 
 					XYSeriesCollection ds = (XYSeriesCollection)plot.getDataset(i);
+					
 					XYSeries s0 = (XYSeries)ds.getSeries().get(0);
 					minX = ((XYDataItem)s0.getItems().get(0)).getXValue();
 					maxX = ((XYDataItem)s0.getItems().get(s0.getItemCount() - 1)).getXValue();
 
-					XYSeries lastYearSeries = new XYSeries("");
-					XYSeriesCollection dsLastYear = new XYSeriesCollection(lastYearSeries);
+					XYSeries currentYearSeries = new XYSeries("");
+					XYSeriesCollection dsCurrentYear = new XYSeriesCollection(currentYearSeries);
 
-					for(int j = 5; j > -1; j--) {
-						lastYearSeries.add((XYDataItem) s0.getItems().get(s0.getItemCount() - 1 - j));
-					}
-					
-					for(int j = 0; j < lastYearSeries.getItemCount() - 1; j++) {
-						s0.remove(s0.getItemCount() - 1);
+					boolean isFirst = true;
+					for(int j = 0; j < s0.getItemCount(); j++) {
+						XYDataItem it = (XYDataItem) s0.getItems().get(j);
+						int xVal = it.getX().intValue();
+						if(xVal == curYear - 1 || xVal == curYear) {
+							if(isFirst) {
+								if(j > 0) {
+									currentYearSeries.add((XYDataItem) s0.getItems().get(j - 1));
+								}
+								isFirst = false;
+							} 
+							currentYearSeries.add((XYDataItem) s0.getItems().get(j));
+						}
 					}
 					
 					AreaRendererFict rendererMain = new AreaRendererFict(Tools.fontResize(font, -2));
@@ -63,9 +80,10 @@ public class Spozh2 implements JRChartCustomizer {
 					rendererMain.setBorderStroke(new BasicStroke(1.5f));
 					plot.setRenderer(i, rendererMain);
 					
-					plot.setDataset(plot.getDatasetCount(), dsLastYear);
+					plot.setDataset(plot.getDatasetCount(), dsCurrentYear);
 					AreaRendererFict rendererLast = new AreaRendererFict(Tools.fontResize(font, -2));
 					rendererLast.setFillColor(new Color(0,128,255));
+					rendererLast.setFillColor(new Color(0,128,255), new Color(0,0,255), true);
 					rendererLast.setWithValues(true);
 					rendererLast.setBorderStroke(new BasicStroke(1.5f));
 					plot.setRenderer(plot.getRendererCount(), rendererLast);
@@ -73,7 +91,12 @@ public class Spozh2 implements JRChartCustomizer {
 			}
 
 			if(minX != 0) plot.getDomainAxis().setLowerBound(minX + 0.4);
-			if(maxX != 0) plot.getDomainAxis().setUpperBound(maxX);
+			if(maxX != 0) {
+				plot.getDomainAxis().setUpperBound(maxX);
+				plot.getRangeAxis().setUpperBound(plot.getRangeAxis().getUpperBound() * 1.2);
+			}
+//			System.out.println(axis.getUpperBound() + "        1111111111111");
+			
 			Tools.drawXaxis(plot);
 		}
 	}

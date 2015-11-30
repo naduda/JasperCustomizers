@@ -3,7 +3,9 @@ package nik.heatsupply.customizers.renderers;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.font.GlyphVector;
@@ -21,7 +23,11 @@ import org.jfree.data.xy.XYDataset;
 
 public class AreaRendererFict extends XYLineAndShapeRenderer {
 	private static final long serialVersionUID = 1L;
-	private Color fillColor;
+	private Paint fillColor;
+	private Color fillColor1;
+	private Color fillColor2;
+	private boolean isGradientFill = false;
+	private boolean isHorizontal;
 	private Color lineColor;
 	private Font font;
 	private boolean withValues = false;
@@ -38,6 +44,13 @@ public class AreaRendererFict extends XYLineAndShapeRenderer {
 
 	public void setFillColor(Color fillColor) {
 		this.fillColor = fillColor;
+	}
+	
+	public void setFillColor(Color fillColor1, Color fillColor2, boolean isHorizontal) {
+		this.fillColor1 = fillColor1;
+		this.fillColor2 = fillColor2;
+		this.isHorizontal = isHorizontal;
+		this.isGradientFill = true;
 	}
 
 	public void setLineColor(Color lineColor) {
@@ -81,8 +94,14 @@ public class AreaRendererFict extends XYLineAndShapeRenderer {
 			p.lineTo(transX2, transY1);
 			p.lineTo(transX2, transY0);
 			p.closePath();
-
-			g2.setPaint(fillColor);
+			
+			if(isGradientFill) {
+				GradientPaint gradientPaint = new GradientPaint((float)transX1, (float)transY0, fillColor1,
+								isHorizontal ? (float)transX2 : (float)transX1, isHorizontal ? (float)transY0 : (float)transY1, fillColor2);
+				g2.setPaint(gradientPaint);
+			} else {
+				g2.setPaint(fillColor);
+			}
 			g2.fill(p);
 			g2.setPaint(lineColor);
 			g2.setStroke(borderStroke);

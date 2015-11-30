@@ -158,6 +158,7 @@ public class Spozh1 implements JRChartCustomizer {
 			
 			Tools.setSameBounds(plot);
 			Tools.drawXaxis(plot);
+			plot.getDomainAxis().setUpperBound(plot.getDomainAxis().getUpperBound() + 0.5);
 		}
 	}
 	

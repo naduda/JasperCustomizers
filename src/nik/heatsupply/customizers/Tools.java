@@ -112,7 +112,7 @@ public class Tools {
 		plot.getDomainAxis().setTickLabelFont(fontResize(font, -6, true));
 		plot.getRenderer().setBaseItemLabelFont(fontAxis);
 		plot.setDomainGridlinesVisible(false);
-		
+
 		int asixCount = plot.getRangeAxisCount();
 		for(int i = 0; i < asixCount; i++) {
 			ValueAxis axis = plot.getRangeAxis(i);
@@ -143,7 +143,7 @@ public class Tools {
 			for(int j = 0; j < itemsCount; j++) {
 				XYDataItem item = (XYDataItem) series.getItems().get(j);
 				XYDataItem itemNext = j < itemsCount - 1 ? (XYDataItem) series.getItems().get(j + 1) : null;
-				if(j == 0) {
+				if(j == 0 && itemNext != null) {
 					double diff = itemNext.getXValue() - item.getXValue();
 					newSeries.add(item.getXValue() - diff, 0);
 					newSeries.add(item.getXValue() - diff * (0.5 - offset), 0);
@@ -188,18 +188,19 @@ public class Tools {
 				XYDataItem itemNext = j < itemsCount - 1 ? (XYDataItem) ds.getSeries(i).getItems().get(j + 1) : null;
 				
 				double diff = 0;
-				if(j == 0 && item.getXValue() > 0) {
-					diff = itemNext.getXValue() - item.getXValue();
-					newSeries.add(item.getXValue() - diff * 0.5, item.getYValue());
-					newSeries.add(item.getXValue() + diff * 0.5, item.getYValue());
-				} else {
-					XYDataItem itemPrev = (XYDataItem) ds.getSeries(i).getItems().get(j - 1);
-					diff = item.getXValue() - itemPrev.getXValue();
-					newSeries.add(item.getXValue() + diff * 0.5, item.getYValue());
+				if(itemNext != null) {
+					if(j == 0 && item.getXValue() > 0) {
+						diff = itemNext.getXValue() - item.getXValue();
+						newSeries.add(item.getXValue() - diff * 0.5, item.getYValue());
+						newSeries.add(item.getXValue() + diff * 0.5, item.getYValue());
+					} else {
+						XYDataItem itemPrev = (XYDataItem) ds.getSeries(i).getItems().get(j - 1);
+						diff = item.getXValue() - itemPrev.getXValue();
+						newSeries.add(item.getXValue() + diff * 0.5, item.getYValue());
+					}
+					if(item.getYValue() != itemNext.getYValue())
+						newSeries.add(item.getXValue() + diff * 0.5, itemNext.getYValue());
 				}
-				if(itemNext != null && item.getYValue() != itemNext.getYValue())
-					newSeries.add(item.getXValue() + diff * 0.5, itemNext.getYValue());
-				
 			}
 			dsNew.addSeries(newSeries);
 		}
@@ -223,7 +224,7 @@ public class Tools {
 			}
 		}
 		for(XYSeries s : listSeries) {
-			if(((XYDataItem)s.getItems().get(0)).getYValue() > 0)
+			if(s.getItems().size() > 0 && ((XYDataItem)s.getItems().get(0)).getYValue() > 0)
 				dsNew.addSeries(s);
 		}
 		return dsNew;
